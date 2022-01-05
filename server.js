@@ -28,7 +28,6 @@ app.get('/write',function(요청, 응답){
     응답.sendFile(__dirname + '/write.html') 
 });
 
-
 app.post('/add', function(요청, 응답){
     응답.send('전송완료')
   console.log(요청.body.title);
@@ -47,8 +46,14 @@ app.post('/add', function(요청, 응답){
 });
 
 app.get('/list', function(요청, 응답){
-    응답.render('list.ejs')
+    db.collection('post').find().toArray(function(에러, 결과){
+        console.log(결과)
+        응답.render('list.ejs', {post : 결과});
+    });
 })
-// app.get('/list', function(요청, 응답){
-//     응답.sendFile(__dirname + '/list.html');
-// })
+
+app.delete('/delete', function(요청, 응답){
+    console.log(요청.body)
+    // 요청.body에 담겨온 게시물번호를 다진 글을 db에서 찾아서 삭제해주세요.
+    
+})
