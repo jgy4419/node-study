@@ -55,5 +55,20 @@ app.get('/list', function(요청, 응답){
 app.delete('/delete', function(요청, 응답){
     console.log(요청.body)
     // 요청.body에 담겨온 게시물번호를 다진 글을 db에서 찾아서 삭제해주세요.
-    
+    요청.body._id = parseInt(요청.body._id);
+    db.collection('post').deleteOne(요청.body, function(에러, 결과){
+        console.log('삭제완료')
+        // 성공 했으면 성공했다고 메시지 보내주기.
+        // status는 상태를 나타내고 ()안에 200은 성공했을 떄를 나타낸다.(400은 실패를 뜻함.)
+        응답.status(200).send({message: '성공했습니다.'});
+    })
+})
+
+app.get('/detail/:id', function(요청, 응답){
+    // 요청.params.id는 url의 파라미터중에 id라고 지은 파라미터 이름을 넣어달라는 뜻.
+    db.collection('post').findOne({_id: parseInt(요청.params.id)}, function(에러, 결과){
+        // 응답.render로 detail.ejs 보여주도록 하기.
+        // data라는 이름에 불러온 데이터 결과를 모두 넣어줌. 불러올 떄 data.값 넣어서 오브젝트 내에 원하는 데이터 가져올 수 있음.
+        응답.render('detail.ejs', {data: 결과})
+    })
 })

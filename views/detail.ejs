@@ -31,44 +31,13 @@
           </div>
         </div>
       </nav>
-      
-      <ul class="list-group">
-        <% for (var i = 0; i < post.length; i++){ %>
-        <li class="list-group-item">
-          <p>글 번호 : <%= post[i]._id%></p>
-          <h4> 할일 제목 : <%= post[i].타이틀%> </h4>
-          <p> 할일 마감날짜 : <%= post[i].날짜%> </p>
-          <button class="delete" data-id="<%= post[i]._id%>">삭제</button>
-        </li>
-        <% } %>
-      </ul>
+      <h4>상세페이지</h4>
+    
+      <h4>제목: ?번게시물의 <%= data.타이틀%></h4>
+      <h4>날짜: 2번게시물의 <%= data.날짜%></h4>
 </body>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 <script>
-  // import axios from 'axios'
-  // window.axios.delete('/delete', 
-  // {_id : 1}).then(function(){
-  //   console.log('성공!')
-  // })
-  let btn = document.querySelectorAll('.delete');
-  for(var i = 0; i < btn.length; i++){
-    btn[i].addEventListener('click',function(e){
-      let 글번호 = e.target.dataset.id;
-      let 지금누른거 = $(this);
-      $.ajax({
-        method: 'DELETE',
-        url: '/delete',
-        data: {_id: 글번호}
-      }).done(function(결과){
-        alert('삭제되었습니다!')
-        console.log('성공했어욤');
-        // 내가 누른 버튼의 부모요소 중 li를 찾아서 서서히 사라지게 해달라는 뜻.
-        지금누른거.parent('li').fadeOut();
-      }).fail(function(a, b, c){
-        console.log('실패!')
-        console.log(a, b, c)
-      });
-    })
-  }
+
 </script>
 </html>
