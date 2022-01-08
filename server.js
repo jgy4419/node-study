@@ -3,6 +3,10 @@ const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
 
+// method-override 라이브러리 등록.
+const methodOverride = require('method-override');
+app.use(methodOverride('_method'))
+
 // mongoDB를 가져온다.
 const MongoClient = require('mongodb').MongoClient;
 var db; // 데이터베이스 지정할 변수.
@@ -21,11 +25,13 @@ MongoClient.connect('mongodb+srv://jgy_98:J141900j.@cluster0.wsokd.mongodb.net/m
 })
 
 app.get('/', function(요청, 응답){
-    응답.sendfile(__dirname + '/index.html')
+    // 응답.sendfile(__dirname + '/index.html')
+    응답.render('index.ejs')
 });
 
 app.get('/write',function(요청, 응답){
-    응답.sendFile(__dirname + '/write.html') 
+    // 응답.sendFile(__dirname + '/write.html') 
+    응답.render('write.ejs')
 });
 
 app.post('/add', function(요청, 응답){
@@ -70,5 +76,27 @@ app.get('/detail/:id', function(요청, 응답){
         // 응답.render로 detail.ejs 보여주도록 하기.
         // data라는 이름에 불러온 데이터 결과를 모두 넣어줌. 불러올 떄 data.값 넣어서 오브젝트 내에 원하는 데이터 가져올 수 있음.
         응답.render('detail.ejs', {data: 결과})
+    })
+})
+
+app.get('/edit/:id', function(요청, 응답){
+    db.collection('post').findOne({_id: parseInt(요청.params.id)}, function(에러, 결과){
+        console.log(결과);
+        // /edit/2로 접속하면 2번째게시물 제목, 날짜를 edit.ejs로 보내줌.
+        응답.render('edit.ejs', {post: 결과})
+        if(에러){
+            console.log(에러)
+        }
+    })
+})
+
+// 누가 /edit 경로로 put요청을 했을 때 
+app.put('/edit', function(요청, 응답){
+    // post라는 파일에 _id가 ??인 데이터를 찾아서 $set(오파레이션)을 사용해서 타이틀: ???를 변경해주세요~~
+    // $set은 업데이터 해주세요. 만약 그 데이터가 없으면 추가시켜줌.
+    db.collection('post').updateOne({_id: parseInt(요청.body.id)}, {$set: {타이틀: 요청.body.title, 날짜 : 요청.body.date}}, function(에러, 결과){
+        console.log('수정완료.');
+        // tip : 서버코드에는 꼭 응답이 필요하다. 응답을 안해주면 사이트가 멈추는 현상이 생김..
+        응답.redirect('/list')
     })
 })
