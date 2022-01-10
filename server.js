@@ -100,3 +100,57 @@ app.put('/edit', function(요청, 응답){
         응답.redirect('/list')
     })
 })
+
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const session = require('express-session');
+
+app.use(session({secret : '비밀코드', resave : true, saveUninitialized: false}));
+app.use(passport.initialize());
+app.use(passport.session()); 
+
+// url에 login을 입력해서 들어갔을 때 로그인 페이지 띄워줌.
+app.get('/login', function(요청, 응답){
+    응답.render('login.ejs')
+})
+// 로그인 버튼을 눌렀을 때 가능 만들기.
+// local방식을 함.
+app.post('/login', passport.authenticate('local', {
+    // 로그인에 실패하면 /fall 경로로 페이지 이동.
+    failureRedirect: '/fail'
+}),(요청, 응답) => {
+    // 로그인에 성공하면 / 경로로 이동.
+  응답.redirect('/')   
+})
+
+// LocalStraregy는 어떻게 인증할 것인지? 알려줌.
+passport.use(new LocalStrategy({
+    // form에서 입력한 name이 id, pw인 것을 각각 가져옴.
+    usernameField: 'id',
+    passwordField: 'pw',
+    session: true, // 로그인 후 세션을 저장할 것인지.
+    passReqToCallback: false,
+    // 여기부터 사용하의 id, pw가 db에 저장된 id, pw중 같은게 있는지 검증해줌.
+  }, function (입력한아이디, 입력한비번, done) {
+    console.log(입력한아이디, 입력한비번); // 사용자가 입력한 id, pw를 console에 띄워줌.
+    // db에 login이라는 파일에 id가 같은지 검사.
+    db.collection('login').findOne({ id: 입력한아이디 }, function (에러, 결과) {
+      if (에러) return done(에러)
+      // 만약 일치하는 아이다가 없으면? 
+      if (!결과) return done(null, false, { message: '존재하지않는 아이디요' })
+      // db에 id가 있으면 여기 실행. 아이디가 일치하면 다음으로 비밀번호가 일치한지 검사해준다. 
+      if (입력한비번 == 결과.pw) {
+        return done(null, 결과)
+      } else {
+        return done(null, false, { message: '비번틀렸어요' })
+      }
+    })
+  }));
+
+  passport.serializeUser(function (user, done) {
+    done(null, user.id)
+  });
+  
+  passport.deserializeUser(function (아이디, done) {
+    done(null, {})
+  }); 
