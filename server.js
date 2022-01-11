@@ -123,6 +123,26 @@ app.post('/login', passport.authenticate('local', {
   응답.redirect('/')   
 })
 
+// .get()의 두번쨰 인자에 내가 만든 미들웨어 넣어주기. 
+// 그러면 /mypage로 요청을 하면 로그인했는 함수가 실행하고 요청, 응답이 나옴.
+app.get('/mypage', 로그인했니, function(요청, 응답){
+    // 로그인에 성공하면 요청.user로 DB에서 해당 id의 정보를 가져올 수 있다.
+    console.log(요청.user);
+    // render의 두번째 인자는 myPage.ejs에 보낼 데이터 작성(객체 데이터로).
+    응답.render('myPage.ejs', {사용자: 요청.user});
+})
+// 로그인했는지 식별해주는 미들웨어 만들어주는 방법.
+function 로그인했니(요청, 응답, next){
+    // db에 user가 있는지
+    // 요청.user는 로그인 후 세션이 있으면 요청.user가 항상있다.
+    if(요청.user){
+        next() // next()는 다음으로 통과시켜달라는 뜻.
+    }else{
+        요청.send('로그인 안하셨네용');
+    }
+}
+
+
 // LocalStraregy는 어떻게 인증할 것인지? 알려줌.
 passport.use(new LocalStrategy({
     // form에서 입력한 name이 id, pw인 것을 각각 가져옴.
@@ -147,10 +167,15 @@ passport.use(new LocalStrategy({
     })
   }));
 
+  // 유저 정보를 세션으로 저장하고, 쿠키를 만들어줌.
   passport.serializeUser(function (user, done) {
     done(null, user.id)
   });
-  
+
+  // 로그인한 유저의 개인정보를 DB에서 찾는 역할.
   passport.deserializeUser(function (아이디, done) {
-    done(null, {})
+      db.collection('login').findOne({id: 아이디}, function(에러, 결과){
+          // 결과는 id: test, pw: test를 가져옴.
+          done(null, 결과)
+      })
   }); 
