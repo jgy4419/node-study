@@ -179,3 +179,28 @@ passport.use(new LocalStrategy({
           done(null, 결과)
       })
   }); 
+
+  app.get('/search', (요청, 응답) => {
+      var 검색조건 = [
+          {
+              $search: {
+                  // index에는 내가만든 인덱스명
+                  index: 'titleSearch',
+                  // 실제 검색 요청하는 부분.
+                  text: {
+                      query: 요청.query.value,
+                      // collection언에서 어떤 항목에서 검사할 것인지 찾기.(여러개 동시에 검사 가능.)
+                      path: "타이틀" // 타이틀, 날짜 둘 다 찾고 싶으면 ['타이틀', '날짜'] 이렇게 넣어주기.
+                  }
+              }
+          },
+          {$sort: {_id: 1}},
+          {$limit: 10}
+      ]
+      db.collection('post').aggregate(검색조건).toArray((에러, 결과)=>{
+        console.log(결과);
+        응답.render('searchRes.ejs', {res: 결과})
+      })
+  })
+
+  
