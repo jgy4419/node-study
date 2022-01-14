@@ -34,40 +34,11 @@ app.get('/write',function(요청, 응답){
     응답.render('write.ejs')
 });
 
-app.post('/add', function(요청, 응답){
-    응답.send('전송완료')
-  console.log(요청.body.title);
-  let postCount;
-  db.collection('counter').findOne({name: "게시물개수"},function(에러, 결과){
-      postCount = 결과.totalCount;
-      db.collection('post').insertOne({_id: postCount+1, 타이틀: 요청.body.title, 날짜: 요청.body.date}, function(에러, 결과){
-        console.log('저장완료');
-        // 내가 mongoDB에서 값을 수정하고 싶을 때 updateOne()를 쓴다. One은 하나만 수정. 여러개는 updateMany()사용.
-        db.collection('counter').updateOne({name: '게시물개수'}, {$inc: {totalCount: 1}}, function(에러, 결과){
-            if(에러) {return console.log(에러)}
-            console.log(postCount);
-        })
-      });
-  });
-});
-
 app.get('/list', function(요청, 응답){
     db.collection('post').find().toArray(function(에러, 결과){
         console.log(결과)
         응답.render('list.ejs', {post : 결과});
     });
-})
-
-app.delete('/delete', function(요청, 응답){
-    console.log(요청.body)
-    // 요청.body에 담겨온 게시물번호를 다진 글을 db에서 찾아서 삭제해주세요.
-    요청.body._id = parseInt(요청.body._id);
-    db.collection('post').deleteOne(요청.body, function(에러, 결과){
-        console.log('삭제완료')
-        // 성공 했으면 성공했다고 메시지 보내주기.
-        // status는 상태를 나타내고 ()안에 200은 성공했을 떄를 나타낸다.(400은 실패를 뜻함.)
-        응답.status(200).send({message: '성공했습니다.'});
-    })
 })
 
 app.get('/detail/:id', function(요청, 응답){
@@ -138,7 +109,7 @@ function 로그인했니(요청, 응답, next){
     if(요청.user){
         next() // next()는 다음으로 통과시켜달라는 뜻.
     }else{
-        요청.send('로그인 안하셨네용');
+        응답.send('로그인 안하셨네용');
     }
 }
 
@@ -180,6 +151,47 @@ passport.use(new LocalStrategy({
       })
   }); 
 
+  app.post('/register', function(요청, 응답){
+      db.collection('login').insertOne({id : 요청.body.id, pw: 요청.body.pw}, function(에러, 결과){
+          응답.redirect('/')
+      })
+  })
+
+
+  app.post('/add', function(요청, 응답){
+    응답.send('전송완료');
+  console.log(요청.body.title);
+  let postCount;
+  db.collection('counter').findOne({name: "게시물개수"},function(에러, 결과){
+      postCount = 결과.totalCount;
+      let 저장할거 = {_id: postCount+1, 작성자: 요청.user._id, 타이틀: 요청.body.title, 날짜: 요청.body.date};
+      db.collection('post').insertOne(저장할거, function(에러, 결과){
+        console.log('저장완료');
+        // 내가 mongoDB에서 값을 수정하고 싶을 때 updateOne()를 쓴다. One은 하나만 수정. 여러개는 updateMany()사용.
+        db.collection('counter').updateOne({name: '게시물개수'}, {$inc: {totalCount: 1}}, function(에러, 결과){
+            if(에러) {return console.log(에러)}
+            console.log(postCount);
+        })
+      });
+  });
+});
+
+
+app.delete('/delete', function(요청, 응답){
+    console.log(요청.body)
+    // 요청.body에 담겨온 게시물번호를 다진 글을 db에서 찾아서 삭제해주세요.
+    요청.body._id = parseInt(요청.body._id);
+
+    var 삭제할데이터 = {_id : 요청.body._id, 작성자 : 요청.user._id};
+    db.collection('post').deleteOne(삭제할데이터, function(에러, 결과){
+        console.log('삭제완료')
+        if(에러){console.log(에러)}
+        // 성공 했으면 성공했다고 메시지 보내주기.
+        // status는 상태를 나타내고 ()안에 200은 성공했을 떄를 나타낸다.(400은 실패를 뜻함.)
+        응답.status(200).send({message: '성공했습니다.'});
+    })
+})
+
   app.get('/search', (요청, 응답) => {
       var 검색조건 = [
           {
@@ -203,4 +215,7 @@ passport.use(new LocalStrategy({
       })
   })
 
-  
+// 고객이 /shop 경로로 요청했을 때 아래의 미들웨어(방금만든 라우터)를 적용해주세요~
+app.use('/shop', require('./routes/shop.js'));
+
+app.use('/board/sub', require('./routes/board.js'));
