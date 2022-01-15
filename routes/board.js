@@ -9,6 +9,8 @@ function 로그인했니(요청, 응답, next){
     }
 }
 
+router.use(로그인했니);
+router.use('/shirts', 로그인했니);
 
 router.get('/sport', 로그인했니, (요청, 응답) => {
     응답.send('스포츠 게시판');
