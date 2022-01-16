@@ -219,3 +219,47 @@ app.delete('/delete', function(요청, 응답){
 app.use('/shop', require('./routes/shop.js'));
 
 app.use('/board/sub', require('./routes/board.js'));
+
+
+let multer = require('multer');
+// diskStorage는 이미지를 어디에 저장할지 정의하는 함수. 그냥 폴더 안에다가 저장해달라는 뜻.
+// memoryStorage는 램에다 저장해달라는 뜻. (휘발성 있게)
+var storage = multer.diskStorage({
+    // destination의 cb는 이미지는 어느 폴더에 저장할지 경로를 지정.
+    destination: (req, file, cb) => {
+        cb(null, './public/image')
+    },
+    // filename의 cb는 저장시 파일명을 지정해줄 수 있다.
+    filename: (req, file, cb) => {
+        // originalname은 기존 파일 이름을 그대로 가져와서 사용 가능.
+        cb(null, file.originalname)
+    },
+    fileFilter: function (req, file, callback) {
+        var ext = path.extname(file.originalname);
+        if(ext !== '.png' && ext !== '.jpg' && ext !== '.jpeg') {
+            return callback(new Error('PNG, JPG만 업로드하세요'))
+        }
+        callback(null, true)
+    },
+    limits:{
+        fileSize: 1024 * 1024
+    }
+});
+// 위에 설정한 세팅 파일을 설정해주면 된다. post요청 시 upload 변수로 기능 사용이 가능. (미들웨어처럼 실행 가능.)
+var upload = multer({storage: storage});
+
+app.get('/upload', (요청, 응답) => {
+    응답.render('upload.ejs');
+})
+
+// upload를 두번째 인자로 미들웨어를 사용 시 upload.single('inputname 속성 이름 적어주기.') 이렇게 적어줘야된다.
+app.post('/upload', upload.single('프로필'), (요청, 응답) => {
+    응답.send('업로드 완료')
+})
+
+// :이미지이름 은 /image/여기에 들어오는 url 아무거나를 뜻함. 가져올 때 요청.params.이미지이름 이렇게 해서 가져오면 된다.
+app.get('/image/:imageName', (요청, 응답) => {
+    // sendFile은 html파일 보낼 때 사용했었음.
+    // __dirname은 현재파일 경로. +(에서) public폴더 안에 image파일 안에 있는 이미지를 보내달라고 하면 됨.
+    응답.sendFile(__dirname + '/public/image/' + 요청.params.imageName);
+})
