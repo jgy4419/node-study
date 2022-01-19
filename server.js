@@ -262,4 +262,4 @@ app.get('/image/:imageName', (요청, 응답) => {
     // sendFile은 html파일 보낼 때 사용했었음.
     // __dirname은 현재파일 경로. +(에서) public폴더 안에 image파일 안에 있는 이미지를 보내달라고 하면 됨.
     응답.sendFile(__dirname + '/public/image/' + 요청.params.imageName);
-})
+});
