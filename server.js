@@ -1,6 +1,8 @@
 const express = require('express');
-const app = express();
+const app = express(); // app이라고 사용하면 express 사용한다는 뜻. ex) app.get app.post
 const bodyParser = require('body-parser');
+
+// app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.urlencoded({extended: true}));
 
 // method-override 라이브러리 등록.
@@ -8,6 +10,7 @@ const methodOverride = require('method-override');
 app.use(methodOverride('_method'))
 
 // mongoDB를 가져온다.
+
 const MongoClient = require('mongodb').MongoClient;
 var db; // 데이터베이스 지정할 변수.
 
